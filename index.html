@@ -180,6 +180,9 @@ html,body{position:fixed;inset:0;width:100%;overscroll-behavior:none}
 .pb,.vb{height:3.2cqw;border-radius:2cqw;background:#49365f33;overflow:hidden;cursor:pointer;margin-top:1cqw;direction:ltr}.pb div,.vb div{height:100%;background:linear-gradient(90deg,#a991c2,#49365F);width:0}
 .vb{height:2cqw;cursor:default}.vb.big{height:4cqw;margin:4cqw 2cqw}
 .tm{display:flex;justify-content:space-between;font-size:3.4cqw;opacity:.75;direction:ltr}
+.ytw{position:absolute;left:9cqw;top:9cqw;width:2px;height:2px;opacity:.01;overflow:hidden;z-index:5;pointer-events:none;border-radius:3cqw;background:#000}.ytw iframe{width:100%;height:100%;border:0;display:block}.ytw.reveal{width:82cqw;height:66cqw;opacity:1;pointer-events:auto}
+.yin{width:100%;box-sizing:border-box;margin-top:2cqw;padding:2.4cqw 3cqw;border:1px solid #49365f66;border-radius:2cqw;background:#ffffff99;color:#171326;font:inherit;font-size:3.6cqw;direction:ltr;text-align:left;outline:none}.yin:focus{border-color:#49365F;background:#fff}
+.ybn{margin:2cqw auto 0;background:#49365F;color:#E9DFE8;border:0;border-radius:2cqw;padding:1.8cqw 6cqw;font:inherit;font-size:4cqw;cursor:pointer}.ybn.dl{background:transparent;color:#49365F;border:1px solid #49365f66;font-size:3.3cqw;padding:.8cqw 4cqw;margin-top:1cqw}
 .ipw{position:absolute;left:18.5cqw;top:82cqw;width:63cqw;height:63cqw;border-radius:50%;background:radial-gradient(circle at 35% 28%,#d8c8e8,#a991c2 55%,#7d639f);box-shadow:0 2cqw 5cqw #0007,inset 0 0 0 .6cqw #ffffff30;touch-action:none;user-select:none;cursor:pointer}
 .ipc{position:absolute;left:34%;top:34%;width:32%;height:32%;border-radius:50%;background:radial-gradient(circle at 40% 30%,#6a4f8f,#3a2c55);box-shadow:inset 0 .4cqw 0 #ffffff33,0 0 0 .5cqw #49365f}
 .ipl{position:absolute;color:#2b2045;font-style:normal;font-size:3.6cqw;font-weight:700;pointer-events:none;display:grid;place-items:center}.ipl svg{width:6cqw;height:3cqw}
@@ -235,7 +238,7 @@ const CONFIG={
  boothTitle:"كشك صورنا",
  finalPhotos:[], // صور جاهزة تظهر في الكشك، مثل ["p1.jpg","p2.jpg"]
  finalCaptions:[], // تعليقات قصيرة لكل صورة (اختياري)
- tracks:[], // أغاني الآيبود: [{t:"اسم الأغنية",a:"الفنان",src:"song1.mp3"}] (إذا فاضية ويستخدم musicFile)
+ tracks:[], // أغاني الآيبود: ملف {t:"اسم",a:"الفنان",src:"song1.mp3"} أو يوتيوب {url:"https://youtu.be/..."} (الاسم والفنان اختياريين لليوتيوب). تقدرين تضيفين روابط يوتيوب من داخل الآيبود نفسه
  musicTitle:"أغنيتنا",
  ipodAbout:"عالم لها وحدها. كل شي هنا محلي على جهازك وما ينرفع لأي مكان.",
  recap:[{c:"اكتبي أو اكتب التعليق",d:"التاريخ"},{c:"اكتبي أو اكتب التعليق",d:"التاريخ"},{c:"اكتبي أو اكتب التعليق",d:"التاريخ"},{c:"اكتبي أو اكتب التعليق",d:"التاريخ"}]
@@ -377,26 +380,31 @@ stages.koi=c=>{let on=0,started=0,armA=0,tgt=0,drag=0,spd=0,ang=0,raf,tw=null,ck
  const esc=x=>x;const words=a=>String(a).trim().split(/\s+/).map(w=>`<span class=w>${w}</span>`).join(' ');
  lin.innerHTML=`<p class=gr>${words(CONFIG.letterGreeting)}</p>`+String(CONFIG.letter).split(/\n+/).filter(Boolean).map(p=>`<p>${words(p)}</p>`).join('')+`<div class=hnt id=hnt><b>تلميح:</b> ${CONFIG.letterHint}</div><p class=sg>${words(CONFIG.letterSign)}</p><button class=nxt id=nxt>كمّلي</button>`;
  const W2=[...lin.querySelectorAll('.w')];
- function end(){clearInterval(tw);tw=null;W2.forEach(w=>w.classList.add('on'));$('#hnt').classList.add('on');if(!fin){goF=done('koi',1);if(goF){$('#nxt').classList.add('on');$('#nxt').onclick=goF}}}
+ const tos=[];let dead=0;
+ function end(){clearInterval(tw);tw=null;if(dead)return;W2.forEach(w=>w.classList.add('on'));$('#hnt').classList.add('on');if(!fin){goF=done('koi',1);if(goF){$('#nxt').classList.add('on');$('#nxt').onclick=goF}}}
  function write(){if(tw)return;let i=0;const per=Math.max(40,Math.min(130,42000/Math.max(1,W2.length)));tw=setInterval(()=>{const w=W2[i++];if(!w){end();return}w.classList.add('on');if(w.scrollIntoView)try{w.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(_){}},per);lt2.addEventListener('pointerdown',()=>{if(tw)end()},{once:true})}
  /* loop */
  function fr(){if(!drag)armA+=(tgt-armA)*.09;const[hx,hy]=head(),now=Math.hypot(hx-CX,hy-CY)<150&&armA>18;
   if(now!==!!on){on=now?1:0;pl.classList.toggle('on',!!on);tx($('#pb'),on?'وقّفي':'شغّلي');led.setAttribute('fill',on?'#E9DFE8':'#3a2c4f');
-   if(on){M.start();clk(.25);if(!ck)ck=setInterval(()=>{if(on&&Math.random()<.55)clk(.03*vol.v)},170);if(!started){started=1;setTimeout(()=>{kz.classList.add('go');lay()},1300);setTimeout(write,3300)}}else M.stop()}
+   if(on){M.start();clk(.25);if(!ck)ck=setInterval(()=>{if(on&&Math.random()<.55)clk(.03*vol.v)},170);if(!started){started=1;tos.push(setTimeout(()=>{kz.classList.add('go');lay()},1300),setTimeout(write,3300))}}else M.stop()}
   spd+=((on?1:0)-spd)*.025;ang+=spd*3.2;vin.style.transform=`rotate(${ang}deg)`;ag.setAttribute('transform',`rotate(${armA} ${PX} ${PY})`);raf=requestAnimationFrame(fr)}
  if(fin){kz.classList.add('go');pl.style.transition='none';lay();void pl.offsetWidth;pl.style.transition='';lt2.style.transition='none';W2.forEach(w=>w.classList.add('on'));$('#hnt').classList.add('on');started=1;$('.cp').style.display='none'}else lay();
- fr();return()=>{cancelAnimationFrame(raf);M.stop();clearInterval(tw);clearInterval(ck);removeEventListener('resize',lay);removeEventListener('pointermove',mv);removeEventListener('pointerup',upf)}};
+ fr();return()=>{dead=1;tos.forEach(clearTimeout);cancelAnimationFrame(raf);M.stop();clearInterval(tw);clearInterval(ck);removeEventListener('resize',lay);removeEventListener('pointermove',mv);removeEventListener('pointerup',upf)}};
 /* Final */
 stages.final=c=>{
  const LS='wofh_ip',ld=()=>{try{return JSON.parse(localStorage[LS])||{}}catch(e){return{}}},P=Object.assign({sh:0,rp:0,vol:.7},ld()),sv=()=>{try{localStorage[LS]=JSON.stringify(P)}catch(e){}};
  const PK='wofhp';let up=[];try{up=JSON.parse(localStorage[PK])||[]}catch(e){}const svp=()=>{try{localStorage[PK]=JSON.stringify(up)}catch(e){toast('المساحة امتلت')}};
- let T=(CONFIG.tracks||[]).filter(t=>t&&t.src).map(t=>({t:t.t||'أغنية',a:t.a||'',src:t.src}));
+ const vid=u=>{u=String(u||'').trim();const m=u.match(/(?:[?&]v=|youtu\.be\/|embed\/|shorts\/|live\/)([\w-]{11})/)||u.match(/^([\w-]{11})$/);return m?m[1]:null};
+ let T=(CONFIG.tracks||[]).filter(t=>t&&(t.src||t.url||t.yt)).map(t=>{const y=vid(t.yt||t.url);return y?{t:t.t||'',a:t.a||'',yt:y}:{t:t.t||'أغنية',a:t.a||'',src:t.src}}).filter(t=>t.src||t.yt);
  if(!T.length&&CONFIG.musicFile)T=[{t:CONFIG.musicTitle||'أغنيتنا',a:'US',src:CONFIG.musicFile}];
- const au=new Audio();au.preload='auto';au.volume=P.vol;const urls=[];let cur=-1;
+ const YK='wofh_yt';try{(JSON.parse(localStorage[YK])||[]).forEach(x=>{if(x&&vid(x.id)&&!T.some(t=>t.yt===x.id))T.push({t:x.t||'',a:x.a||'',yt:x.id,saved:1})})}catch(e){}
+ const svy=()=>{try{localStorage[YK]=JSON.stringify(T.filter(t=>t.saved).map(t=>({id:t.yt,t:t.t,a:t.a})))}catch(e){}};
+ const nm=(t,i)=>t.t||(t.yt?'يوتيوب '+(i+1):'أغنية '+(i+1));
+ const au=new Audio();au.preload='auto';au.volume=P.vol;const urls=[];let cur=-1,dead=0,yt=null,ytOk=0,pend=-1,stallT=0,pollT=0,errRun=0;
  const ph=(CONFIG.finalPhotos||[]).filter(Boolean),caps=CONFIG.finalCaptions||[];
  c.innerHTML=`<div class=fin id=fin><div class=fc><div class=fm>${CONFIG.finalTitle||'الفصل الأخير'}</div><p class=fpass>${CONFIG.finalPassage}</p>
  <div class=zbt><div class=btl>${CONFIG.boothTitle||'كشك صورنا'}</div><div class=btr id=btr></div><button class=btb id=btb>ضيفي صورة</button><input type=file accept="image/*" hidden id=btf multiple></div></div>
- <div class=ip id=ip><div class=ipb><div class=ips id=ips></div><div class=ipw id=ipw><div class=ipc></div>
+ <div class=ip id=ip><div class=ipb><div class=ips id=ips></div><div class=ytw id=ytw><div id=yth></div></div><div class=ipw id=ipw><div class=ipc></div>
  <i class="ipl t">القائمة</i><i class="ipl b"><svg viewBox="0 0 24 12"><path d="M3 1l7 5-7 5zM13 1v10M17 1v10" fill=currentColor stroke=currentColor stroke-width=2 /></svg></i><i class="ipl l"><svg viewBox="0 0 24 12"><path d="M12 1v10M21 1l-8 5 8 5z" fill=currentColor stroke=currentColor stroke-width=1.5 /></svg></i><i class="ipl r"><svg viewBox="0 0 24 12"><path d="M12 1v10M3 1l8 5-8 5z" fill=currentColor stroke=currentColor stroke-width=1.5 /></svg></i></div></div>
  <input type=file accept="audio/*" multiple hidden id=aff></div></div>`;
  /* photo booth */
@@ -409,28 +417,58 @@ stages.final=c=>{
  const RP=['طافي','الكل','وحدة'];
  function items(id){
   if(id=='main')return[{l:'الموسيقى',f:()=>push('songs')},{l:'يتشغل الحين',f:()=>push('now')},{l:'خلط',r:P.sh?'شغّال':'طافي',f:()=>{P.sh=P.sh?0:1;sv()}},{l:'تكرار',r:RP[P.rp],f:()=>{P.rp=(P.rp+1)%3;sv()}},{l:'الصوت',f:()=>push('vol')},{l:'عن',f:()=>push('about')}];
-  if(id=='songs')return[...T.map((t,i)=>({l:t.t,r:i==cur&&playing?'●':'',f:()=>{play(i);push('now')}})),{l:'إضافة أغنية',f:()=>$('#aff').click()}];
+  if(id=='songs')return[...T.map((t,i)=>({l:nm(t,i),r:i==cur&&playing?'●':'',f:()=>{play(i);push('now')}})),{l:'إضافة رابط يوتيوب',f:()=>push('add')},{l:'إضافة ملف صوت',f:()=>$('#aff').click()}];
   return[]}
  function push(id){stack.push({id,sel:0});draw();clk(.08)}
- function draw(){const s=top(),t={main:'القائمة',songs:'الموسيقى',now:'يتشغل الحين',vol:'الصوت',about:'عن'}[s.id];
+ function draw(){if(dead)return;const s=top(),t={main:'القائمة',songs:'الموسيقى',now:'يتشغل الحين',add:'إضافة',vol:'الصوت',about:'عن'}[s.id];
   let b='';
   if(s.id=='main'||s.id=='songs'){const it=items(s.id);s.sel=Math.max(0,Math.min(it.length-1,s.sel));b=`<div class=lst id=lst>${it.map((x,i)=>`<div class="ro${i==s.sel?' sl':''}"><span>${x.l}</span><em>${x.r||''}</em></div>`).join('')}</div>`;if(s.id=='songs'&&!T.length)b=`<div class=nt>ما فيه أغاني بعد. أضيفي من الأسفل أو حطّ الملف في CONFIG.</div>`+b}
-  else if(s.id=='now'){const tr=T[cur];b=tr?`<div class=nw><div class=nd>${tr.t}</div><div class=na>${tr.a||''}</div><div class=pb id=pbr><div id=pbf></div></div><div class=tm><span id=t1>0:00</span><span id=t2>0:00</span></div><div class=vb><div id=vbf style="width:${P.vol*100}%"></div></div></div>`:`<div class=nt>ما فيه شي يشتغل. اختاري أغنية من الموسيقى.</div>`}
+  else if(s.id=='now'){const tr=T[cur];b=tr?`<div class=nw><div class=nd>${nm(tr,cur)}</div><div class=na>${tr.a||''}</div><div class=pb id=pbr><div id=pbf></div></div><div class=tm><span id=t1>0:00</span><span id=t2>0:00</span></div><div class=vb><div id=vbf style="width:${P.vol*100}%"></div></div>${tr.saved?'<button class="ybn dl" id=ydl>حذف من القائمة</button>':''}</div>`:`<div class=nt>ما فيه شي يشتغل. اختاري أغنية من الموسيقى.</div>`}
+  else if(s.id=='add')b=`<div class=nw><div class=nd>الصقي رابط يوتيوب</div><input class=yin id=yin type=text inputmode=url autocomplete=off autocapitalize=off spellcheck=false placeholder="https://youtu.be/..."><button class=ybn id=yok>أضيف</button><div class=na>رابط عادي أو مختصر أو شورتس</div></div>`;
   else if(s.id=='vol')b=`<div class=nw style="justify-content:center"><div class=nd>الصوت</div><div class="vb big"><div id=vbf style="width:${P.vol*100}%"></div></div><div class=tm style="justify-content:center"><span id=vp>${Math.round(P.vol*100)}%</span></div></div>`;
   else b=`<div class=nt>${CONFIG.ipodAbout||'عالم لها وحدها. كل شي هنا محلي على جهازك وما ينرفع لأي مكان.'}</div>`;
   scr.innerHTML=`<div class=sb><span>${t}</span><span class=st2>${playing?'▶':''}</span></div>${b}`;
   const l=$('#lst');if(l){const r=l.querySelector('.sl');if(r){const o=r.offsetTop,h=r.offsetHeight;if(o<l.scrollTop)l.scrollTop=o;else if(o+h>l.scrollTop+l.clientHeight)l.scrollTop=o+h-l.clientHeight}}
-  const p=$('#pbr');if(p)p.onclick=e=>{const r=p.getBoundingClientRect();if(au.duration)au.currentTime=au.duration*Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))};prog()}
- function prog(){const f=$('#pbf');if(!f)return;f.style.width=(au.duration?au.currentTime/au.duration*100:0)+'%';$('#t1').textContent=fmt(au.currentTime);$('#t2').textContent='-'+fmt((au.duration||0)-au.currentTime)}
- function play(i){if(!T.length)return;cur=(i+T.length)%T.length;au.src=T[cur].src;au.volume=P.vol;au.play().then(()=>{},()=>{});}
+  const p=$('#pbr');if(p)p.onclick=e=>{const r=p.getBoundingClientRect(),d=getD();if(d)seekTo(d*Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)))};
+  const yi=$('#yin');if(yi){yi.value=s.v||'';yi.oninput=()=>{s.v=yi.value};yi.onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();addYT()}else if(e.key=='Escape'){e.preventDefault();back()}};$('#yok').onclick=addYT;yi.focus();try{yi.setSelectionRange(yi.value.length,yi.value.length)}catch(_){}}
+  const dl=$('#ydl');if(dl)dl.onclick=()=>{if(!dl.dataset.c){dl.dataset.c=1;dl.textContent='اضغطي مرة ثانية للتأكيد';return}rmSong(cur)};prog()}
+ const isYT=()=>cur>=0&&!!T[cur]&&!!T[cur].yt;
+ const getT=()=>{if(isYT()){try{return ytOk?(yt.getCurrentTime()||0):0}catch(e){return 0}}return au.currentTime||0};
+ const getD=()=>{if(isYT()){try{return ytOk?(yt.getDuration()||0):0}catch(e){return 0}}return isFinite(au.duration)?au.duration:0};
+ const seekTo=t=>{if(isYT()){try{ytOk&&yt.seekTo(t,true)}catch(e){}prog()}else au.currentTime=t};
+ const setV=v=>{au.volume=v;try{ytOk&&yt.setVolume(Math.round(v*100))}catch(e){}};
+ function prog(){const f=$('#pbf');if(!f)return;const d=getD(),t=getT();f.style.width=(d?Math.min(100,t/d*100):0)+'%';$('#t1').textContent=fmt(t);$('#t2').textContent='-'+fmt(Math.max(0,d-t))}
+ /* youtube */
+ const hideY=()=>{const w=$('#ytw');w&&w.classList.remove('reveal')};
+ const armY=()=>{clearTimeout(stallT);stallT=setTimeout(()=>{if(dead||playing||!isYT())return;const w=$('#ytw');w&&w.classList.add('reveal')},3500)};
+ function ytApi(cb){if(window.YT&&YT.Player){cb();return}const pv=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{try{pv&&pv()}catch(e){}cb()};
+  if(!document.getElementById('ytapi')){const sc=document.createElement('script');sc.id='ytapi';sc.src='https://www.youtube.com/iframe_api';sc.onerror=()=>{if(!dead)toast('ما قدرت أحمّل مشغّل يوتيوب. تأكدي من الإنترنت')};document.head.appendChild(sc)}}
+ function ytMake(){ytApi(()=>{if(dead||yt)return;const pv={playsinline:1,controls:1,rel:0,fs:0,modestbranding:1,iv_load_policy:3,disablekb:1};if(/^https?:/.test(location.protocol))pv.origin=location.origin;
+  yt=new YT.Player('yth',{width:'100%',height:'100%',playerVars:pv,events:{onReady:()=>{if(dead)return;ytOk=1;try{yt.setVolume(Math.round(P.vol*100))}catch(e){}if(pend>=0){const p=pend;pend=-1;ytPlay(p)}},onStateChange:ytState,onError:ytErr}})})}
+ function ytPlay(i){au.pause();playing=0;pend=i;armY();if(!ytOk){if(!yt)ytMake();return}pend=-1;try{yt.loadVideoById(T[i].yt);yt.setVolume(Math.round(P.vol*100))}catch(e){}if(!pollT)pollT=setInterval(prog,500)}
+ function ytState(e){if(dead||!isYT())return;const d=e.data;
+  if(d===1){playing=1;errRun=0;clearTimeout(stallT);hideY();try{const v=yt.getVideoData(),t=T[cur];if(v&&v.title&&!t.t){t.t=v.title;if(!t.a)t.a=(v.author||'').replace(/ - Topic$/,'');svy()}}catch(_){}draw()}
+  else if(d===2){playing=0;draw()}
+  else if(d===0){ended()}}
+ function ytErr(e){if(dead)return;clearTimeout(stallT);hideY();playing=0;const M={2:'رابط الفيديو مو صحيح',5:'صار خلل بالمشغّل',100:'الفيديو مو متوفر',101:'صاحب الفيديو منع تشغيله هنا',150:'صاحب الفيديو منع تشغيله هنا',153:'افتحي الصفحة من localhost أو https'};toast(M[e.data]||'ما قدرت أشغّل هذي');draw();if(++errRun<T.length&&T.length>1)setTimeout(()=>{if(!dead&&!playing)nxt(1,1)},1800)}
+ function fillYT(t){if(t.t&&t.a)return;fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+t.yt)).then(r=>r.json()).then(d=>{if(!t.t)t.t=d.title||'';if(!t.a)t.a=(d.author_name||'').replace(/ - Topic$/,'');if(t.saved)svy();draw()}).catch(()=>{})}
+ T.forEach(t=>{if(t.yt)fillYT(t)});
+ function addYT(){const s=top(),id=vid(s.v);if(!id){toast('هذا مو رابط يوتيوب');return}
+  const ex=T.findIndex(t=>t.yt===id);stack.pop();if(ex>=0){top().sel=ex;draw();toast('الأغنية موجودة من قبل');return}
+  const t={t:'',a:'',yt:id,saved:1};T.push(t);svy();fillYT(t);top().sel=T.length-1;draw();toast('انضافت الأغنية')}
+ function rmSong(i){const t=T[i];if(!t||!t.saved)return;if(isYT()){try{ytOk&&yt.stopVideo()}catch(e){}}clearTimeout(stallT);hideY();pend=-1;T.splice(i,1);svy();cur=-1;playing=0;if(stack.length>1)stack.pop();draw();toast('انحذفت الأغنية')}
+ function play(i){if(!T.length)return;cur=(i+T.length)%T.length;const t=T[cur];if(t.yt){ytPlay(cur);draw();return}
+  try{ytOk&&yt.pauseVideo()}catch(e){}hideY();clearTimeout(stallT);pend=-1;playing=0;au.src=t.src;au.volume=P.vol;au.play().then(()=>{},()=>{})}
  function nxt(d,auto){if(!T.length)return;if(P.sh&&T.length>1){let n;do n=Math.floor(Math.random()*T.length);while(n==cur);play(n)}else{const n=cur+d;if(auto&&P.rp==0&&n>=T.length){playing=0;draw();return}play(n)}}
- au.onplay=()=>{playing=1;draw()};au.onpause=()=>{playing=0;draw()};au.ontimeupdate=prog;au.onloadedmetadata=prog;au.onended=()=>{if(P.rp==2){au.currentTime=0;au.play()}else nxt(1,1)};
- const tg=()=>{if(cur<0){if(T.length)play(0);return}au.paused?au.play().catch(()=>{}):au.pause()};
- $('#aff').onchange=e=>{[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f);urls.push(u);T.push({t:f.name.replace(/\.[^.]+$/,''),a:'',src:u})});e.target.value='';if(stack.length&&top().id=='songs')top().sel=T.length;draw();toast('انضافت الأغنية')};
- function turn(d){const s=top();if(s.id=='main'||s.id=='songs'){const n=Math.max(0,Math.min(items(s.id).length-1,s.sel+d));if(n!=s.sel){s.sel=n;draw();clk(.04)}}else if(s.id=='now'||s.id=='vol'){P.vol=Math.max(0,Math.min(1,Math.round((P.vol+d*.05)*100)/100));au.volume=P.vol;sv();const f=$('#vbf');if(f)f.style.width=P.vol*100+'%';const v=$('#vp');if(v)v.textContent=Math.round(P.vol*100)+'%';clk(.04)}}
- const sel=()=>{const s=top();if(s.id=='main'||s.id=='songs'){const x=items(s.id)[s.sel];if(x){clk(.1);x.f();if(s.id=='main'||s.id=='songs')draw()}}else if(s.id=='now')tg()};
+ au.onplay=()=>{if(isYT())return;playing=1;draw()};au.onpause=()=>{if(isYT())return;playing=0;draw()};au.ontimeupdate=()=>{if(!isYT())prog()};au.onloadedmetadata=()=>{if(!isYT())prog()};
+ function ended(){if(P.rp==2){seekTo(0);if(isYT()){try{yt.playVideo()}catch(e){}}else au.play().catch(()=>{})}else nxt(1,1)}
+ au.onended=()=>{if(!isYT())ended()};
+ const tg=()=>{if(cur<0){if(T.length)play(0);return}if(isYT()){if(!ytOk)return;try{playing?yt.pauseVideo():yt.playVideo()}catch(e){}return}au.paused?au.play().catch(()=>{}):au.pause()};
+ $('#aff').onchange=e=>{[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f);urls.push(u);T.push({t:f.name.replace(/\.[^.]+$/,''),a:'',src:u})});e.target.value='';if(stack.length&&top().id=='songs')top().sel=T.length-1;draw();toast('انضافت الأغنية')};
+ function turn(d){const s=top();if(s.id=='main'||s.id=='songs'){const n=Math.max(0,Math.min(items(s.id).length-1,s.sel+d));if(n!=s.sel){s.sel=n;draw();clk(.04)}}else if(s.id=='now'||s.id=='vol'){P.vol=Math.max(0,Math.min(1,Math.round((P.vol+d*.05)*100)/100));setV(P.vol);sv();const f=$('#vbf');if(f)f.style.width=P.vol*100+'%';const v=$('#vp');if(v)v.textContent=Math.round(P.vol*100)+'%';clk(.04)}}
+ const sel=()=>{const s=top();if(s.id=='main'||s.id=='songs'){const x=items(s.id)[s.sel];if(x){clk(.1);x.f();if(s.id=='main'||s.id=='songs')draw()}}else if(s.id=='now')tg();else if(s.id=='add')addYT()};
  const back=()=>{if(stack.length>1){stack.pop();draw();clk(.08)}};
- const act={c:sel,t:back,b:tg,l:()=>{if(au.currentTime>3)au.currentTime=0;else nxt(-1)},r:()=>nxt(1)};
+ const act={c:sel,t:back,b:tg,l:()=>{if(getT()>3)seekTo(0);else nxt(-1)},r:()=>nxt(1)};
  /* wheel */
  const w=$('#ipw');let dn=0,la=0,acc=0,mvd=0;
  const geo=e=>{const r=w.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);return{d:Math.hypot(x,y)/(r.width/2),a:Math.atan2(y,x)*180/Math.PI}};
@@ -442,7 +480,7 @@ stages.final=c=>{
  keyh=e=>{if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)&&e.target.type!='file')return;const k=e.key;if(k=='ArrowDown'){turn(1);e.preventDefault()}else if(k=='ArrowUp'){turn(-1);e.preventDefault()}else if(k=='Enter'){sel();e.preventDefault()}else if(k=='Backspace'||k=='Escape'){if(stack.length>1){back();e.preventDefault()}}else if(k==' '){tg();e.preventDefault()}else if(k=='ArrowRight'){act.l();e.preventDefault()}else if(k=='ArrowLeft'){act.r();e.preventDefault()}};
  draw();
  S.d.includes('final')||(S.d.push('final'),save(),refresh());
- return()=>{keyh=null;au.pause();au.removeAttribute('src');urls.forEach(u=>URL.revokeObjectURL(u))}};
+ return()=>{dead=1;keyh=null;clearTimeout(stallT);clearInterval(pollT);try{yt&&yt.destroy()}catch(e){}yt=null;ytOk=0;au.pause();au.removeAttribute('src');urls.forEach(u=>URL.revokeObjectURL(u))}};
 /* Recap */
 stages.recap=c=>{let R;try{R=JSON.parse(localStorage.wofhr)}catch(e){}R=R||CONFIG.recap.map(r=>({...r,i:''}));let p=0;const sv=()=>{try{localStorage.wofhr=JSON.stringify(R)}catch(e){toast('المساحة امتلت')}};
  function rn(){const r=R[p];c.innerHTML=`<div class=pol id=pl><div class=im id=im style="${r.i?`background-image:url(${r.i})`:''}">${r.i?'':'اضغطي لإضافة صورة'}</div><div contenteditable id=cc>${r.c}</div><div contenteditable id=dd style="font-size:14px">${r.d}</div></div><input type=file accept="image/*" hidden id=fi><div class=row style="justify-content:center"><button id=nx>التالية</button><span>${p+1} / ${R.length}</span><button id=pv>السابقة</button><button id=dl>تحميل</button></div>`;
